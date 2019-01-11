@@ -1,0 +1,64 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "spotify connect",
+            "intents": [
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "PlayIntent",
+                    "slots": [],
+                    "samples": [
+                        "continue playing",
+                        "resume",
+                        "play"
+                    ]
+                },
+                {
+                    "name": "PauseIntent",
+                    "slots": [],
+                    "samples": [
+                        "stop",
+                        "pause"
+                    ]
+                },
+                {
+                    "name": "SwitchDeviceIntent",
+                    "slots": [
+                        {
+                            "name": "deviceName",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "switch to the {deviceName}",
+                        "switch to my {deviceName}",
+                        "switch playback to the {deviceName}",
+                        "switch playback to my {deviceName}",
+                        "switch to {deviceName}",
+                        "switch playback to {deviceName}"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}
