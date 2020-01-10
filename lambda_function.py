@@ -20,48 +20,50 @@ class SpotifyConnector:
         devices = { 'name': {}, 'type': {}}
         bearer_auth = self.make_bearer_auth()
         device_list_response = requests.get("https://api.spotify.com/v1/me/player/devices", headers=bearer_auth)
+        if(device_list_response.status_code != 200):
+            return None
         device_list = device_list_response.json()['devices']
         for device in device_list:
             devices['name'][device['name']] = device['id']
             devices['type'][device['type']] = device['id']
         if(previous_url or previous_payload):
-            return make_action_and_confirm(previous_url, previous_payload)
+            return self.make_put_request(previous_url, previous_payload)
         return devices
 
-    def make_action_and_confirm(self, url, payload=None):
-        # TODO: Error handling in class functions instead, which return
-        # appropriate responses
+    def make_put_request(self, url, payload=None):
         auth_header = self.make_bearer_auth()
         r = requests.put(url, headers=auth_header, data=payload)
         if(r.status_code == 204 or r.status_code == 200):
-            return True
-        elif(r.status_code == 404):
-            reason = r.json()['error']['reason']
-            if reason == "NO_ACTIVE_DEVICE":
-                return False
-        elif(r.status_code == 403):
-            reason = r.json()['error']['reason']
-            if reason == "PREMIUM_REQUIRED":
-                return False
+            return None
         else:
-            return False
-        return False
+            return r.json()['error']
 
     def make_play_request(self, device=None):
         device_id = None
         if(device != None):
-            print(device)
             device_id = self.__find_device(device)
         if(device_id != None):
             url = "https://api.spotify.com/v1/me/player/play?device_id="+device_id
         else:
             url = "https://api.spotify.com/v1/me/player/play"
-        return self.make_action_and_confirm(url)
+        errors = self.make_put_request(url)
+        if(errors == None):
+            return build_response("Playing")
+        else:
+            return build_response(f"{errors['status']} {errors['message']}")
 
     def make_pause_request(self):
-        return self.make_action_and_confirm("https://api.spotify.com/v1/me/player/pause")
+        errors = self.make_put_request("https://api.spotify.com/v1/me/player/pause")
+        if(errors == None):
+            return build_response("Paused")
+        else:
+            return build_response(f"{errors['status']} {errors['message']}")
 
     def __find_device(self, device=""):
+        if not self.devices:
+            self.devices = self.refresh_device_hash()
+            if not self.devices:
+                return None
         names = self.devices["name"]
         types = self.devices["type"]
         for k in names.keys():
@@ -75,13 +77,19 @@ class SpotifyConnector:
     def make_switch_device_request(self, device):
         device_id = self.__find_device(device)
         if(device_id == None):
-            return False
+            return build_response("Device was not found. Add more to this error")
         payload = json.dumps({"device_ids":[device_id]})
-        return self.make_action_and_confirm("https://api.spotify.com/v1/me/player", payload)
+        errors = self.make_put_request("https://api.spotify.com/v1/me/player", payload)
+        if(errors == None):
+            return build_response("Now playing on " + device)
+        else:
+            return build_response(f"{errors['status']} {errors['message']}")
 
     def list_devices(self):
         if not self.devices:
             self.devices = self.refresh_device_hash()
+            if not self.devices:
+                return build_response("Error getting the list of devices from Spotify.")
         device_names = list(self.devices['name'].keys())
         device_types = list(self.devices['type'].keys())
         num_devices = len(device_names)
@@ -93,7 +101,7 @@ class SpotifyConnector:
             response += " and"
         response += f""" {device_names[-1]}, a {device_types[-1]}.
         You can use any part of a device's name or type to control it."""
-        return response
+        return build_response(response)
 
 def build_response(dialog):
     return {
@@ -121,29 +129,16 @@ def handle_intent(request, token):
         #TODO: add arg here to specify which device to play on?
         if("value" in request["intent"]["slots"]["deviceName"]):
             device_name = request["intent"]["slots"]["deviceName"]["value"]
-            action_confirmed = sc.make_play_request(device_name)
+            return sc.make_play_request(device_name)
         else:
-            action_confirmed = sc.make_play_request()
-        if(action_confirmed):
-            return build_response("Playing")
-        else:
-            return build_response("There was an error. Please retry in a second.")
+            return sc.make_play_request()
     elif(intent_name == "PauseIntent"):
-        action_confirmed = sc.make_pause_request()
-        if(action_confirmed):
-            return build_response("Paused")
-        else:
-            return build_response("There was an error. Please retry in a second.")
+        return sc.make_pause_request()
     elif(intent_name == "ListDevicesIntent"):
-        device_response = sc.list_devices()
-        return build_response(device_response)
+        return sc.list_devices()
     elif(intent_name == "SwitchDeviceIntent"):
         device_name = request["intent"]["slots"]["deviceName"]["value"]
-        action_confirmed = sc.make_switch_device_request(device_name)
-        if(action_confirmed):
-            return build_response("Now playing on " + device_name)
-        else:
-            return build_response("I couldn't find that device. Try asking what your devices are.")
+        return sc.make_switch_device_request(device_name)
 
 def access_token(event):
     context = event["context"]
