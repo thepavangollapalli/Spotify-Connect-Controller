@@ -30,6 +30,15 @@ class SpotifyConnector:
             return self.make_put_request(previous_url, previous_payload)
         return devices
 
+    #TODO: standard error handling across get and put requests
+    def make_get_request(self, url):
+        auth_header = self.make_bearer_auth()
+        r = requests.get(url, headers=auth_header)
+        if(r.status_code == 200):
+            return r.json()
+        else:
+            return r.json()['error']
+
     def make_put_request(self, url, payload=None):
         auth_header = self.make_bearer_auth()
         r = requests.put(url, headers=auth_header, data=payload)
