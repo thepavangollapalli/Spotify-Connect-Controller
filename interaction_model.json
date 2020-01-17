@@ -25,8 +25,15 @@
                 },
                 {
                     "name": "PlayIntent",
-                    "slots": [],
+                    "slots": [
+                        {
+                            "name": "deviceName",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
                     "samples": [
+                        "play on my {deviceName}",
+                        "play on {deviceName}",
                         "continue playing",
                         "resume",
                         "play"
@@ -36,7 +43,6 @@
                     "name": "PauseIntent",
                     "slots": [],
                     "samples": [
-                        "stop",
                         "pause"
                     ]
                 },
@@ -55,6 +61,23 @@
                         "switch playback to my {deviceName}",
                         "switch to {deviceName}",
                         "switch playback to {deviceName}"
+                    ]
+                },
+                {
+                    "name": "ListDevicesIntent",
+                    "slots": [],
+                    "samples": [
+                        "what devices I have",
+                        "list my current devices",
+                        "list my devices",
+                        "what devices I can play on",
+                        "what my devices are",
+                        "refresh the device list",
+                        "refresh devices",
+                        "list devices",
+                        "what devices I can play from",
+                        "what devices there are",
+                        "what devices can I play from"
                     ]
                 }
             ],
