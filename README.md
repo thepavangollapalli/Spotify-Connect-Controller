@@ -1,6 +1,6 @@
 # Spotify Connect Controller
 
-Provides an Alexa voice skill running on an AWS Lambda instance that can be used to control and switch playback on any available Spotify Connect devices.
+An Alexa voice skill running on an AWS Lambda instance that interfaces with the Spotify API to control and switch playback on any available Spotify Connect devices.
 
 Examples:
 * "Alexa, ask Spotify Connect to list my devices"
